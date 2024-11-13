@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "NODE_ENV=production DEBUG=okra-assessment:* node ./src/server.js",
+    "build": "npx tsc",
     "dev": "NODE_ENV=development DEBUG=okra-assessment:* nodemon ./src/server.ts",
     "prepare": "husky install"
   },
