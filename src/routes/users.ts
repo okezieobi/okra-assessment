@@ -1,11 +1,132 @@
 import express from "express";
 import { UserCollection } from "../mongodb";
+import { UserSchema } from "../zod";
+import { ObjectId } from "mongodb";
 const router = express.Router();
 
 /* GET users listing. */
-router.get("/", async function (req, res) {
-  const users = await UserCollection.find({}).toArray();
-  res.send(users);
-});
+router
+  .route("/")
+  .post(async (req, res, next) => {
+    try {
+      const input = await UserSchema.safeParseAsync(req.body);
+      if (input.success == false) {
+        throw res.status(400).send({
+          status: false,
+          message: "error",
+          data: input.error,
+        });
+      }
+      const user = await UserCollection.findOne({ email: input.data.email });
+      if (user) {
+        throw res.status(409).send({
+          status: false,
+          message: `User with provided email already exists`,
+          data: null,
+        });
+      }
+      const data = await UserCollection.insertOne({
+        ...input.data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      res.status(201).send({
+        status: true,
+        message: "success",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  })
+  .get(async (req, res, next) => {
+    try {
+      const data = await UserCollection.find({}).toArray();
+      res.send({
+        status: true,
+        message: "success",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+router
+  .route("/:userId")
+  .get(async (req, res, next) => {
+    try {
+      const data = await UserCollection.findOne({
+        _id: new ObjectId(req.params.userId),
+      });
+      if (data == null) {
+        throw res.status(404).send({
+          status: false,
+          message: "User not found with provided id",
+          data: null,
+        });
+      }
+      res.send({
+        status: true,
+        messgage: "success",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  })
+  .put(async (req, res, next) => {
+    try {
+      const userById = await UserCollection.findOne({
+        _id: new ObjectId(req.params.userId),
+      });
+      if (userById == null) {
+        throw res.status(404).send({
+          status: false,
+          message: "User not found with provided id",
+          data: null,
+        });
+      }
+      const input = await UserSchema.partial().safeParseAsync(req.body);
+      if (input.success == false) {
+        throw res.status(400).send({
+          status: false,
+          message: "error",
+          data: input.error,
+        });
+      }
+      if (input.data.email) {
+        const userByEmail = await UserCollection.findOne({
+          email: input.data.email,
+        });
+        if (userByEmail != null) {
+          throw res.status(409).send({
+            status: false,
+            message: "User with provided email already exists",
+            data: null,
+          });
+        }
+      }
+      const data = await UserCollection.updateOne(
+        { _id: new ObjectId(req.params.userId) },
+        {
+          $set: {
+            ...(input.data.age && { age: input.data.age }),
+            ...(input.data.email && { email: input.data.email }),
+            ...(input.data.username && { username: input.data.username }),
+            ...(input.data.city && { city: input.data.city }),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      );
+      res.send({
+        status: true,
+        messgage: "success",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
 
 export default router;

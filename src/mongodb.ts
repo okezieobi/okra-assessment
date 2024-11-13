@@ -8,7 +8,8 @@ export interface User {
   username: string;
   age: number;
   city: string;
-  createdAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const mongoClient = new MongoClient(uri);
