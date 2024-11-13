@@ -1,12 +1,16 @@
 import { MongoClient } from "mongodb";
 
 // Replace the uri string with your connection string.
-const uri = "mongodb://root:password@localhost:27017/?authSource=admin";
+const uri = "mongodb://root:example@127.0.0.1:27017";
 
-export const client = new MongoClient(uri);
-export const database = client.db("okra-assessment");
+export interface User {
+  email: string;
+  username: string;
+  age: number;
+  city: string;
+  createdAt: number;
+}
 
-client
-  .connect()
-  .then(() => console.log("Coonection successfull"))
-  .catch(console.error);
+export const mongoClient = new MongoClient(uri);
+export const mongoDatabase = mongoClient.db("okra-assessment");
+export const UserCollection = mongoDatabase.collection<User>("users");
