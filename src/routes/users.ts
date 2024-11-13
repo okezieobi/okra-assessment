@@ -1,6 +1,6 @@
 import express from "express";
 import { UserCollection } from "../mongodb";
-import { UserSchema } from "../zod";
+import { UserIdSchema, UserSchema } from "../zod";
 import { ObjectId } from "mongodb";
 const router = express.Router();
 
@@ -25,11 +25,12 @@ router
           data: null,
         });
       }
-      const data = await UserCollection.insertOne({
+      const inserted = await UserCollection.insertOne({
         ...input.data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toUTCString(),
+        updatedAt: new Date().toUTCString(),
       });
+      const data = await UserCollection.findOne({ _id: inserted.insertedId });
       res.status(201).send({
         status: true,
         message: "success",
@@ -56,8 +57,16 @@ router
   .route("/:userId")
   .get(async (req, res, next) => {
     try {
+      const filter = await UserIdSchema.safeParseAsync(req.params);
+      if (filter.success == false) {
+        throw res.status(400).send({
+          status: false,
+          message: "error",
+          data: filter.error,
+        });
+      }
       const data = await UserCollection.findOne({
-        _id: new ObjectId(req.params.userId),
+        _id: new ObjectId(filter.data.userId),
       });
       if (data == null) {
         throw res.status(404).send({
@@ -77,8 +86,16 @@ router
   })
   .put(async (req, res, next) => {
     try {
+      const filter = await UserIdSchema.safeParseAsync(req.params);
+      if (filter.success == false) {
+        throw res.status(400).send({
+          status: false,
+          message: "error",
+          data: filter.error,
+        });
+      }
       const userById = await UserCollection.findOne({
-        _id: new ObjectId(req.params.userId),
+        _id: new ObjectId(filter.data.userId),
       });
       if (userById == null) {
         throw res.status(404).send({
@@ -107,18 +124,21 @@ router
           });
         }
       }
-      const data = await UserCollection.updateOne(
-        { _id: new ObjectId(req.params.userId) },
+      await UserCollection.updateOne(
+        { _id: new ObjectId(filter.data.userId) },
         {
           $set: {
             ...(input.data.age && { age: input.data.age }),
             ...(input.data.email && { email: input.data.email }),
             ...(input.data.username && { username: input.data.username }),
             ...(input.data.city && { city: input.data.city }),
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date().toUTCString(),
           },
         },
       );
+      const data = await UserCollection.findOne({
+        _id: new ObjectId(filter.data.userId),
+      });
       res.send({
         status: true,
         messgage: "success",
