@@ -1,15 +1,15 @@
-import express from 'express';
-import logger from 'morgan';
+import express from "express";
+import logger from "morgan";
 
-import usersRouter from './routes/users';
+import usersRouter from "./routes/users";
 
 const app = express();
 
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/users', usersRouter);
+app.use("/users", usersRouter);
 
-app.listen()
+app.listen();
 export default app;
