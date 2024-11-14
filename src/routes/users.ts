@@ -73,8 +73,11 @@ router.post("/avg-age-city", async (req, res, next) => {
     const data = await UserCollection.aggregate([
       {
         $group: {
+          // group users by agae and city
           _id: { age: "$age", city: "$city" },
+          // count users in each group
           count: { $sum: 1 },
+          // calculate aveg age of users in a each group
           averageAge: { $avg: "$age" },
         },
       },
