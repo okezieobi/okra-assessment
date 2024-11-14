@@ -23,7 +23,7 @@ Build app:
 $ npm run build
 ```
 
-BSetup Database:
+Setup Database:
 
 ```bash
 $ docker compose up -d
