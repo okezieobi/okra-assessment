@@ -7,6 +7,10 @@
 [![Linux Build][github-actions-ci-image]][github-actions-ci-url]
 [![Windows Build][appveyor-image]][appveyor-url]
 
+# Postman Docs
+
+https://documenter.getpostman.com/view/37684547/2sAY55aHpc
+
 ## Installation
 
 ```sh
