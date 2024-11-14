@@ -6,3 +6,4 @@ export const UserSchema = z.object({
   age: z.number(),
   city: z.string(),
 });
+export type UserSchema = z.infer<typeof UserSchema>;

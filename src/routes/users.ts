@@ -1,6 +1,6 @@
 import express from "express";
 import { UserCollection } from "../mongodb";
-import { UserIdSchema, UserSchema } from "../zod";
+import { PaginatedListSchema, UserIdSchema, UserSchema } from "../zod";
 import { ObjectId } from "mongodb";
 const router = express.Router();
 
@@ -42,11 +42,26 @@ router
   })
   .get(async (req, res, next) => {
     try {
-      const data = await UserCollection.find({}).toArray();
+      const query = await PaginatedListSchema.safeParseAsync(req.query);
+      if (query.success == false) {
+        throw res.status(400).send({
+          status: false,
+          message: "error",
+          data: query.error,
+        });
+      }
+      const users = await UserCollection.find({})
+        .limit(query.data.limit)
+        .skip(query.data.skip)
+        .sort({ _id: query.data.sort == "asc" ? 1 : -1 })
+        .toArray();
       res.send({
         status: true,
         message: "success",
-        data,
+        data: {
+          pagination: query.data,
+          users,
+        },
       });
     } catch (error) {
       next(error);
