@@ -23,6 +23,12 @@ Build app:
 $ npm run build
 ```
 
+BSetup Database:
+
+```bash
+$ docker compose up -d
+```
+
 Start your Express.js app at `http://localhost:3000/`:
 
 ```bash
