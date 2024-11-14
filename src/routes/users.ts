@@ -68,6 +68,28 @@ router
     }
   });
 
+router.post("/avg-age-city", async (req, res, next) => {
+  try {
+    const data = await UserCollection.aggregate([
+      {
+        $group: {
+          _id: { age: "$age", city: "$city" },
+          count: { $sum: 1 },
+          averageAge: { $avg: "$age" },
+        },
+      },
+      { $sort: { "_id.age": 1, "_id.city": 1 } },
+    ]).toArray();
+    res.send({
+      status: true,
+      messahe: "success",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router
   .route("/:userId")
   .get(async (req, res, next) => {
