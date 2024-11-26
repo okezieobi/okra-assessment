@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 import { UserSchema } from "./zod";
 
 // Replace the uri string with your connection string.
-const uri = "mongodb://root:example@127.0.0.1:27017";
+const uri = "mongodb://root:example@mongo:27017";
 
 type Base = {
   createdAt: string;
