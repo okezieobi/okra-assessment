@@ -13,17 +13,12 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Verify files are copied correctly
-RUN ls -la /usr/src/app
 
 # Build app
 RUN npm run build
 
-# Verify build output
-RUN ls -la /usr/src/app
-
 # Remove dev dependencies
-RUN npm prune --production
+RUN npm prune --omit=dev
 
 # Expose the port the app runs on
 EXPOSE 3000

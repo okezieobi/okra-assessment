@@ -20,7 +20,7 @@ Install Docker and docker compose https://docs.docker.com/compose/install/
 #### build and start app
 
 ```sh
-$ docker compose up -d
+$ docker-compose up --build -d
 ```
 
 ### remove app
