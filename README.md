@@ -11,28 +11,22 @@
 
 https://documenter.getpostman.com/view/37684547/2sAY55aHpc
 
-## Installation
+## Requirememts
+
+Install Docker and docker compose https://docs.docker.com/compose/install/
+
+### Rename .env.sample to .env
+
+#### build and start app
 
 ```sh
-$ npm install
-```
-
-Build app:
-
-```bash
-$ npm run build
-```
-
-Setup Database:
-
-```bash
 $ docker compose up -d
 ```
 
-Start your Express.js app at `http://localhost:3000/`:
+### remove app
 
 ```bash
-$ npm start
+$ docker compose down
 ```
 
 ## License
