@@ -15,7 +15,7 @@ https://documenter.getpostman.com/view/37684547/2sAY55aHpc
 
 Install docker compose ie https://docs.docker.com/compose/install/
 
-### Rename .env.sample to .env
+### Clone repo, cd into folder and rename .env.sample to .env
 
 #### build and start app
 
