@@ -1,7 +1,7 @@
 import express from "express";
-import { UserCollection } from "../mongodb";
-import { PaginatedListSchema, UserIdSchema, UserSchema } from "../zod";
-import { ObjectId } from "mongodb";
+import { GetUser, InsertUser, ListUsers, UpdateUser } from "../mongodb";
+import { UserSchemaServices } from "../zod";
+
 const router = express.Router();
 
 /* GET users listing. */
@@ -9,28 +9,8 @@ router
   .route("/")
   .post(async (req, res, next) => {
     try {
-      const input = await UserSchema.safeParseAsync(req.body);
-      if (input.success == false) {
-        throw res.status(400).send({
-          status: false,
-          message: "error",
-          data: input.error,
-        });
-      }
-      const user = await UserCollection.findOne({ email: input.data.email });
-      if (user) {
-        throw res.status(409).send({
-          status: false,
-          message: `User with provided email already exists`,
-          data: null,
-        });
-      }
-      const inserted = await UserCollection.insertOne({
-        ...input.data,
-        createdAt: new Date().toUTCString(),
-        updatedAt: new Date().toUTCString(),
-      });
-      const data = await UserCollection.findOne({ _id: inserted.insertedId });
+      const input = new UserSchemaServices(req.body).parseInsert();
+      const data = await new InsertUser(input).main();
       res.status(201).send({
         status: true,
         message: "success",
@@ -42,24 +22,13 @@ router
   })
   .get(async (req, res, next) => {
     try {
-      const query = await PaginatedListSchema.safeParseAsync(req.query);
-      if (query.success == false) {
-        throw res.status(400).send({
-          status: false,
-          message: "error",
-          data: query.error,
-        });
-      }
-      const users = await UserCollection.find({})
-        .limit(query.data.limit)
-        .skip(query.data.skip)
-        .sort({ _id: query.data.sort == "asc" ? 1 : -1 })
-        .toArray();
+      const query = new UserSchemaServices(req.query).parsePaginatedList();
+      const users = await new ListUsers().paginated(query);
       res.send({
         status: true,
         message: "success",
         data: {
-          pagination: query.data,
+          pagination: query,
           users,
         },
       });
@@ -70,19 +39,7 @@ router
 
 router.post("/avg-age-city", async (req, res, next) => {
   try {
-    const data = await UserCollection.aggregate([
-      {
-        $group: {
-          // group users by agae and city
-          _id: { age: "$age", city: "$city" },
-          // count users in each group
-          count: { $sum: 1 },
-          // calculate aveg age of users in a each group
-          averageAge: { $avg: "$age" },
-        },
-      },
-      { $sort: { "_id.age": 1, "_id.city": 1 } },
-    ]).toArray();
+    const data = await new ListUsers().groupByAvgAge();
     res.send({
       status: true,
       messahe: "success",
@@ -97,24 +54,8 @@ router
   .route("/:userId")
   .get(async (req, res, next) => {
     try {
-      const filter = await UserIdSchema.safeParseAsync(req.params);
-      if (filter.success == false) {
-        throw res.status(400).send({
-          status: false,
-          message: "error",
-          data: filter.error,
-        });
-      }
-      const data = await UserCollection.findOne({
-        _id: new ObjectId(filter.data.userId),
-      });
-      if (data == null) {
-        throw res.status(404).send({
-          status: false,
-          message: "User not found with provided id",
-          data: null,
-        });
-      }
+      const filter = new UserSchemaServices(req.params).parseId();
+      const data = await new GetUser().byId(filter.userId);
       res.send({
         status: true,
         messgage: "success",
@@ -126,59 +67,10 @@ router
   })
   .put(async (req, res, next) => {
     try {
-      const filter = await UserIdSchema.safeParseAsync(req.params);
-      if (filter.success == false) {
-        throw res.status(400).send({
-          status: false,
-          message: "error",
-          data: filter.error,
-        });
-      }
-      const userById = await UserCollection.findOne({
-        _id: new ObjectId(filter.data.userId),
-      });
-      if (userById == null) {
-        throw res.status(404).send({
-          status: false,
-          message: "User not found with provided id",
-          data: null,
-        });
-      }
-      const input = await UserSchema.partial().safeParseAsync(req.body);
-      if (input.success == false) {
-        throw res.status(400).send({
-          status: false,
-          message: "error",
-          data: input.error,
-        });
-      }
-      if (input.data.email) {
-        const userByEmail = await UserCollection.findOne({
-          email: input.data.email,
-        });
-        if (userByEmail != null) {
-          throw res.status(409).send({
-            status: false,
-            message: "User with provided email already exists",
-            data: null,
-          });
-        }
-      }
-      await UserCollection.updateOne(
-        { _id: new ObjectId(filter.data.userId) },
-        {
-          $set: {
-            ...(input.data.age && { age: input.data.age }),
-            ...(input.data.email && { email: input.data.email }),
-            ...(input.data.username && { username: input.data.username }),
-            ...(input.data.city && { city: input.data.city }),
-            updatedAt: new Date().toUTCString(),
-          },
-        },
-      );
-      const data = await UserCollection.findOne({
-        _id: new ObjectId(filter.data.userId),
-      });
+      const filter = new UserSchemaServices(req.params).parseId();
+      await new GetUser().byId(filter.userId);
+      const input = new UserSchemaServices(req.body).parseUpdate();
+      const data = await new UpdateUser(input).main(filter.userId);
       res.send({
         status: true,
         messgage: "success",

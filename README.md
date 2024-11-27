@@ -13,7 +13,7 @@ https://documenter.getpostman.com/view/37684547/2sAY55aHpc
 
 ## Requirememts
 
-Install Docker and docker compose https://docs.docker.com/compose/install/
+Install docker compose ie https://docs.docker.com/compose/install/
 
 ### Rename .env.sample to .env
 
@@ -23,7 +23,7 @@ Install Docker and docker compose https://docs.docker.com/compose/install/
 $ docker-compose up --build -d
 ```
 
-### remove app
+### stop app
 
 ```bash
 $ docker compose down
