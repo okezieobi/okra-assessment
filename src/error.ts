@@ -26,12 +26,12 @@ function logErrors(
 
 // Client error handler
 function clientErrorHandler(
-  err: Error,
+  err: AppError,
   req: Request,
   res: Response,
   next: NextFunction,
 ): void {
-  if (req.xhr && err instanceof AppError) {
+  if (req.xhr || err instanceof AppError) {
     res
       .status(err.status ?? 500)
       .send({ status: true, message: err.message ?? "error", data: err });

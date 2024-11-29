@@ -1,8 +1,6 @@
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 
-export * from "./user";
-
 export const UserIdSchema = z.object({
   userId: z
     .string()
@@ -15,3 +13,11 @@ export const PaginatedListSchema = z.object({
   limit: z.number().default(10),
 });
 export type PaginatedListSchema = z.infer<typeof PaginatedListSchema>;
+
+export const UserSchema = z.object({
+  email: z.string().email(),
+  username: z.string(),
+  age: z.number(),
+  city: z.string(),
+});
+export type UserSchema = z.infer<typeof UserSchema>;
